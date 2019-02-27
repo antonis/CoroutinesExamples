@@ -25,30 +25,33 @@ fun CoroutineScope.cacheActor() = actor<CacheAction> {
 }
 
 private fun CoroutineScope.cache(keywords: ReceiveChannel<String>):  ReceiveChannel<String> = produce {
+    val cache = cacheActor()
     for(keyword in keywords) {
-        val cache = cacheActor()
         val value = CompletableDeferred<String?>()
         cache.send(RetrieveAction(keyword, value))
         val retrievedValue = value.await()
-        if( retrievedValue != null) {
+        if(retrievedValue != null) {
+            println("Cached")
             send(retrievedValue!!)
         } else {
+            println("Googling")
             val result = google(keyword)
             cache.send(StoreAction(keyword, result))
             send(result)
         }
-        cache.close()
     }
+    cache.close()
 }
 
 private fun CoroutineScope.getCountries(): ReceiveChannel<String> = produce {
-    for (country in countries) send(country)
+    val someDuplicates = listOf("Australia", "Australia", "Australia", "Argentina")
+    for (country in listOf(someDuplicates, countries).flatten()) send(country)
 }
 
 fun main() = runBlocking {
     val countries = getCountries()
     val google = cache(countries)
-    for (i in 1..5){ //get five results
+    for (i in 1..10){ //get five results
         println("Result $i: ${google.receive()}")
     }
     println("One more... ${google.receive()}")

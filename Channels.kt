@@ -17,6 +17,7 @@ val cache = mutableMapOf<String, String>()
 private fun CoroutineScope.cache(keywords: ReceiveChannel<String>):  ReceiveChannel<String> = produce {
     for(keyword in keywords) {
         send(cache.getOrElse(keyword) {
+            println("Googling")
             val result = google(keyword)
             mutex.withLock { cache[keyword] = result }
             return@getOrElse result
@@ -25,7 +26,8 @@ private fun CoroutineScope.cache(keywords: ReceiveChannel<String>):  ReceiveChan
 }
 
 private fun CoroutineScope.getCountries(): ReceiveChannel<String> = produce {
-    for (country in countries) send(country)
+    val someDuplicates = listOf("Australia", "Australia", "Australia", "Argentina")
+    for (country in listOf(someDuplicates, countries).flatten()) send(country)
 }
 
 fun main() = runBlocking {

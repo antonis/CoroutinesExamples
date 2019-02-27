@@ -16,6 +16,7 @@ object Cache {
 
     fun googleWithCache(keyword: String): String {
         return cache[keyword] ?: if (requested.add(keyword)) {
+            println("Googling")
             val result = google(keyword)
             cache.put(keyword, result)
             requested.remove(keyword)
@@ -29,8 +30,8 @@ object Cache {
 }
 
 fun main() {
-    for (country in countries) {
-        println("Googling $country")
+    val someDuplicates = listOf("Australia", "Australia", "Australia", "Argentina")
+    for (country in listOf(someDuplicates, countries).flatten()) {
         val result = Cache.googleWithCache(country)
         println("Result for $country: $result")
     }
